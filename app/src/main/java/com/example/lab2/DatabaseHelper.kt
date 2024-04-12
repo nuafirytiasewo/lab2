@@ -4,8 +4,9 @@ import android.content.ContentValues // Импорт класса ContentValues 
 import android.content.Context // Импорт класса Context для доступа к ресурсам приложения
 import android.database.sqlite.SQLiteDatabase // Импорт класса SQLiteDatabase для работы с базой данных SQLite
 import android.database.sqlite.SQLiteOpenHelper // Импорт класса SQLiteOpenHelper для управления базой данных SQLite
+import android.os.AsyncTask
 
-// Класс для работы с базой данных
+// Класс для работы с базой данных SQLite
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     // Метод вызывается при создании базы данных
@@ -23,6 +24,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         onCreate(db)
     }
 
+    // Метод для добавления новой записи в таблицу
+    fun insertRecord(name: String) {
+        // Запуск асинхронной задачи для добавления записи
+        InsertRecordTask(this).execute(name)
+    }
+
+    // Метод для обновления последней записи в таблице
+    fun updateLastRecord(newName: String) {
+        // Запуск асинхронной задачи для обновления последней записи
+        UpdateLastRecordTask(this, newName).execute()
+    }
+
     // Метод для удаления всех записей из таблицы
     fun deleteAllRecords() {
         // Получение экземпляра базы данных для записи
@@ -31,59 +44,43 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.delete(TABLE_NAME, null, null)
     }
 
-    // Метод для добавления записи в таблицу
-    fun insertRecord(name: String) {
-        // Получение экземпляра базы данных для записи
-        val db = writableDatabase
-        // Создание объекта ContentValues для удобного добавления значений в таблицу
-        val values = ContentValues().apply {
-            // Установка значений полей записи
-            put(COLUMN_NAME, name)
-            put(COLUMN_TIMESTAMP, System.currentTimeMillis())
-        }
-        // Добавление записи в таблицу
-        db.insert(TABLE_NAME, null, values)
-    }
-
-    // Метод для обновления ФИО последней добавленной записи в таблице
-    fun updateLastRecord() {
-        // Получение экземпляра базы данных для записи
-        val db = writableDatabase
-        // Новое ФИО для обновления
-        val newName = "Иванов Иван Иванович"
-        // Создание объекта ContentValues с новым ФИО
-        val values = ContentValues().apply {
-            put(COLUMN_NAME, newName)
-        }
-        // Условие выбора последней записи по ID для обновления
-        val whereClause = "$COLUMN_ID = (SELECT MAX($COLUMN_ID) FROM $TABLE_NAME)"
-        // Обновление записи в таблице
-        db.update(TABLE_NAME, values, whereClause, null)
-    }
-
     // Метод для добавления начальных записей в таблицу
-    private fun insertInitialRecords(db: SQLiteDatabase) {
+    fun insertInitialRecords() {
         // Удаление всех записей перед добавлением новых записей
         deleteAllRecords()
-        // Добавление 5 начальных записей
+        // Добавление начальных записей
         repeat(5) {
             // Формирование имени студента
-            val name = "Студент $it"
+            val name = "Студент ${it + 1}"
             // Добавление записи в таблицу
-            insertRecord(db, name)
+            insertRecord(name)
         }
     }
 
-    // Метод для добавления записи в таблицу с указанным экземпляром базы данных
-    private fun insertRecord(db: SQLiteDatabase, name: String) {
-        // Создание объекта ContentValues для удобного добавления значений в таблицу
-        val values = ContentValues().apply {
-            // Установка значений полей записи
-            put(COLUMN_NAME, name)
-            put(COLUMN_TIMESTAMP, System.currentTimeMillis())
+    // Внутренний класс для асинхронной задачи добавления записи
+    private class InsertRecordTask(private val dbHelper: DatabaseHelper) : AsyncTask<String, Void, Void>() {
+        override fun doInBackground(vararg params: String?): Void? {
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put(COLUMN_NAME, params[0])
+                put(COLUMN_TIMESTAMP, System.currentTimeMillis())
+            }
+            db.insert(TABLE_NAME, null, values)
+            return null
         }
-        // Добавление записи в таблицу
-        db.insert(TABLE_NAME, null, values)
+    }
+
+    // Внутренний класс для асинхронной задачи обновления последней записи
+    private class UpdateLastRecordTask(private val dbHelper: DatabaseHelper, private val newName: String) : AsyncTask<Void, Void, Void>() {
+        override fun doInBackground(vararg params: Void?): Void? {
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put(COLUMN_NAME, newName)
+            }
+            val whereClause = "$COLUMN_ID = (SELECT MAX($COLUMN_ID) FROM $TABLE_NAME)"
+            db.update(TABLE_NAME, values, whereClause, null)
+            return null
+        }
     }
 
     // Статические поля класса для описания базы данных и таблицы
@@ -98,7 +95,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         // SQL-запрос для создания таблицы
         private const val SQL_CREATE_ENTRIES =
             "CREATE TABLE $TABLE_NAME (" +
-                    "$COLUMN_ID INTEGER PRIMARY KEY," +
+                    "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "$COLUMN_NAME TEXT," +
                     "$COLUMN_TIMESTAMP INTEGER)"
 

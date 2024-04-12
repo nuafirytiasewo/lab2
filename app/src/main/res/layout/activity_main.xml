@@ -10,7 +10,7 @@
         android:id="@+id/button_show_records"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Show Records"
+        android:text="Показать записи"
         android:layout_marginBottom="16dp"
         android:onClick="showRecords"/>
 
@@ -18,7 +18,7 @@
         android:id="@+id/button_add_record"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Record"
+        android:text="Добавить запись"
         android:layout_below="@id/button_show_records"
         android:layout_marginBottom="16dp"
         android:onClick="addRecord"/>
@@ -27,7 +27,7 @@
         android:id="@+id/button_update_record"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Update Last Record"
+        android:text="Обновить последнюю запись"
         android:layout_below="@id/button_add_record"
         android:onClick="updateRecord"/>
 
