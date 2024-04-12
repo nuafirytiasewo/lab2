@@ -45,7 +45,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     // Метод для добавления начальных записей в таблицу
-    fun insertInitialRecords() {
+    fun insertInitialRecords(db: SQLiteDatabase) {
         // Удаление всех записей перед добавлением новых записей
         deleteAllRecords()
         // Добавление начальных записей
