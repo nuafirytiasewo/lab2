@@ -9,11 +9,13 @@ class RecordsActivity : AppCompatActivity() { // Определение клас
 
     private lateinit var recyclerView: RecyclerView // Объявление переменной для RecyclerView
     private lateinit var adapter: RecordsAdapter // Объявление переменной для адаптера списка
+    private lateinit var dbHelper: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) { // Переопределение метода onCreate для инициализации активити
         super.onCreate(savedInstanceState) // Вызов родительского метода onCreate
         setContentView(R.layout.activity_records) // Установка макета для активити
 
+        dbHelper = DatabaseHelper(this)
         recyclerView = findViewById(R.id.recyclerView) // Поиск RecyclerView по идентификатору
         recyclerView.layoutManager = LinearLayoutManager(this) // Установка LayoutManager для RecyclerView
         adapter = RecordsAdapter(getRecordsFromDatabase()) // Инициализация адаптера с данными из базы данных
@@ -21,13 +23,23 @@ class RecordsActivity : AppCompatActivity() { // Определение клас
     }
 
     private fun getRecordsFromDatabase(): List<Record> {
-        // В данном примере возвращается фиктивный список записей
-        return listOf(
-            Record(1, "Иванов Иван Иванович", "01.04.2024"),
-            Record(2, "Петров Петр Петрович", "02.04.2024"),
-            Record(3, "Сидоров Сидор Сидорович", "03.04.2024"),
-            Record(4, "Алексеев Алексей Алексеевич", "04.04.2024"),
-            Record(5, "Николаев Николай Николаевич", "05.04.2024")
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DatabaseHelper.TABLE_NAME, null, null, null, null, null,
+            "${DatabaseHelper.COLUMN_ID} ASC"
         )
+        val records = mutableListOf<Record>()
+
+        while (cursor.moveToNext()) {
+            val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID))
+            val name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAME))
+            val date = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TIMESTAMP))
+            records.add(Record(id, name, date))
+        }
+
+        cursor.close()
+        db.close()
+
+        return records
     }
 }
