@@ -1,6 +1,7 @@
 package com.example.lab2 // Объявление пакета
 
 import android.content.Intent // Импорт класса Intent для перехода к другому активити
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle // Импорт класса Bundle для работы с данными активити
 import android.view.View // Импорт класса View для работы с пользовательским интерфейсом
 import android.widget.Toast // Импорт класса Toast для отображения всплывающих уведомлений
@@ -15,7 +16,28 @@ class MainActivity : AppCompatActivity() { // Определение класс�
         setContentView(R.layout.activity_main) // Установка макета для активити
 
         dbHelper = DatabaseHelper(this) // Инициализация объекта dbHelper для работы с базой данных
+        val db = dbHelper.writableDatabase // Получаем доступ к базе данных
+
+        // Проверяем существование таблицы
+        if (!checkTableExists(DatabaseHelper.TABLE_NAME, db)) {
+            // Создаем таблицу, если ее нет
+            db.execSQL(DatabaseHelper.SQL_CREATE_ENTRIES)
+        }
+
+        // Удаление всех записей из БД
+        dbHelper.deleteAllRecords(db)
+
+        // Внесение 5 записей об одногруппниках
+        dbHelper.insertInitialRecords(db)
     }
+
+    fun checkTableExists(tableName: String, db: SQLiteDatabase): Boolean {
+        val cursor = db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = '$tableName'", null)
+        val tableExists = cursor.moveToFirst()
+        cursor.close()
+        return tableExists
+    }
+
 
     // Метод для отображения записей
     fun showRecords(view: View) {

@@ -37,23 +37,27 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     // Метод для удаления всех записей из таблицы
-    fun deleteAllRecords() {
-        // Получение экземпляра базы данных для записи
-        val db = writableDatabase
+    fun deleteAllRecords(db: SQLiteDatabase) {
         // Удаление всех записей из таблицы
         db.delete(TABLE_NAME, null, null)
     }
 
     // Метод для добавления начальных записей в таблицу
     fun insertInitialRecords(db: SQLiteDatabase) {
-        // Удаление всех записей перед добавлением новых записей
-        deleteAllRecords()
-        // Добавление начальных записей
-        repeat(5) {
-            // Формирование имени студента
-            val name = "Студент ${it + 1}"
-            // Добавление записи в таблицу
-            insertRecord(name)
+        val currentTime = System.currentTimeMillis()
+        val students = listOf(
+            "Антонова Алёна Дмитриевна",
+            "Кириллова Надежда Никитична",
+            "Фролова София Данииловна",
+            "Гусев Даниил Никитич",
+            "Иванова Евгения Михайловна"
+        )
+        students.forEach { name ->
+            val values = ContentValues().apply {
+                put(COLUMN_NAME, name)
+                put(COLUMN_TIMESTAMP, currentTime)
+            }
+            db.insert(TABLE_NAME, null, values)
         }
     }
 
@@ -93,7 +97,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_TIMESTAMP = "timestamp" // Название столбца с временной меткой
 
         // SQL-запрос для создания таблицы
-        private const val SQL_CREATE_ENTRIES =
+        const val SQL_CREATE_ENTRIES =
             "CREATE TABLE $TABLE_NAME (" +
                     "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "$COLUMN_NAME TEXT," +
