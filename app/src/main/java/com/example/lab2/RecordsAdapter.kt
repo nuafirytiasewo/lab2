@@ -5,6 +5,14 @@ import android.view.View // Импорт класса View для работы �
 import android.view.ViewGroup // Импорт класса ViewGroup для работы с контейнерами пользовательского интерфейса
 import android.widget.TextView // Импорт класса TextView для отображения текстовых данных
 import androidx.recyclerview.widget.RecyclerView // Импорт класса RecyclerView для отображения списка записей
+import java.text.SimpleDateFormat
+import java.util.*
+
+fun convertTimestampStringToDate(timestampString: String): String {
+    val timestamp = timestampString.toLong() // Преобразуем строку в Long
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+    return dateFormat.format(Date(timestamp))
+}
 
 data class Record(val id: Int, val name: String, val date: String) // Определение класса данных Record
 
@@ -25,7 +33,9 @@ class RecordsAdapter(private val records: List<Record>) : RecyclerView.Adapter<R
         val record = records[position] // Получение записи по позиции
         holder.idTextView.text = record.id.toString()
         holder.nameTextView.text = record.name // Установка имени записи в TextView
-        holder.dateTextView.text = record.date // Установка временной метки записи в TextView
+        // Преобразование строки timestamp в дату и время
+        val formattedDate = convertTimestampStringToDate(record.date)
+        holder.dateTextView.text = formattedDate
     }
 
     override fun getItemCount(): Int { // Переопределение метода getItemCount
